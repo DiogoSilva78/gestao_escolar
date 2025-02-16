@@ -17,7 +17,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['user_type'] = $user['tipo']; // Guarda o tipo de usuário
 
         // Verifica se é admin ou aluno e define a URL de redirecionamento
-        $redirect_url = ($user['tipo'] == 'admin') ? "dashboard_admin.php" : "dashboard_alunos.php";
+        if ($user['tipo'] == 'admin') {
+            $redirect_url = "dashboard_admin.php";
+        } elseif ($user['tipo'] == 'funcionario') {
+            $redirect_url = "dashboard_funcionario.php"; // Nova página para funcionários
+        } else {
+            $redirect_url = "dashboard_alunos.php";
+        }        
 
         echo json_encode(["status" => "success", "message" => "Login bem-sucedido!", "redirect" => $redirect_url]);
     } else {
