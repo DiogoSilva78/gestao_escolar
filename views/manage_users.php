@@ -3,7 +3,7 @@ include '../config/db.php';
 $adminOnly = true;
 include '../controllers/auth_check.php';
 
-// Buscar todos os usuários
+// Procurar todos os utilizadores
 $query = "SELECT id, nome, email, tipo FROM users";
 $result = $conn->query($query);
 ?>
@@ -13,12 +13,12 @@ $result = $conn->query($query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Usuários</title>
+    <title>Gestão de Utilizadores</title>
     <link rel="stylesheet" href="../public/css/style.css">
 </head>
 <body>
 
-<h2>Gestão de Usuários</h2>
+<h2>Gestão de Utilizadores</h2>
 <a href="dashboard_admin.php">Voltar</a>
 <a href="add_user.php">Adicionar Usuário</a>
 

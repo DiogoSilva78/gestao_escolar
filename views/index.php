@@ -24,7 +24,7 @@
 
                 // Envia para o PHP para verificar o login
                 $.post("../rfid/rfid_login.php", { rfid: rfid }, function (response) {
-                    console.log(response); // Depuração no console
+                    console.log(response); // Depuração na consola
                     let data = JSON.parse(response);
                     alert(data.message);
                     if (data.status === "success") {

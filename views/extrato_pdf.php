@@ -1,11 +1,16 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-
+require __DIR__ . '/../vendor/autoload.php'; // Caminho corrigido do autoload
 
 include '../config/db.php';
 include '../controllers/auth_check.php';
 
 use Dompdf\Dompdf;
+use Dompdf\Options;
+
+// Configuração para evitar erros de memória
+$options = new Options();
+$options->set('defaultFont', 'Arial');
+$dompdf = new Dompdf($options);
 
 $user_id = $_SESSION['user_id'];
 $query = "SELECT tipo, valor, data FROM transacoes WHERE user_id = ? ORDER BY data DESC";
@@ -14,13 +19,13 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-$html = "<h2>Extrato de Movimentos</h2>
-<table border='1' width='100%' cellpadding='5'>
+$html = '<h2>Extrato de Movimentos</h2>
+<table border="1" width="100%" cellpadding="5">
 <tr>
     <th>Tipo</th>
     <th>Valor (€)</th>
     <th>Data</th>
-</tr>";
+</tr>';
 
 while ($transacao = $result->fetch_assoc()) {
     $html .= "<tr>
@@ -32,9 +37,13 @@ while ($transacao = $result->fetch_assoc()) {
 
 $html .= "</table>";
 
-$dompdf = new Dompdf();
+// Gerar PDF
 $dompdf->loadHtml($html);
-$dompdf->setPaper("A4", "portrait");
+$dompdf->setPaper('A4', 'portrait');
 $dompdf->render();
-$dompdf->stream("extrato_aluno.pdf");
+
+// Enviar o PDF para o navegador
+header('Content-Type: application/pdf');
+header('Content-Disposition: inline; filename="extrato.pdf"');
+echo $dompdf->output();
 ?>

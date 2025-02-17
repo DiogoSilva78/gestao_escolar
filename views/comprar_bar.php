@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $produto_id = $_POST['produto_id'];
     $quantidade = $_POST['quantidade'];
 
-    // Buscar o aluno
+    // Buscar o aluno pelo RFID
     $query = $conn->prepare("SELECT id, nome, saldo FROM users WHERE rfid_tag = ? AND tipo = 'aluno'");
     $query->bind_param("s", $rfid);
     $query->execute();
@@ -21,8 +21,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($result->num_rows > 0) {
         $aluno = $result->fetch_assoc();
+        $aluno_id = $aluno['id'];
 
-        // Buscar o produto
+        // Buscar o produto na papelaria
         $query_produto = $conn->prepare("SELECT nome, preco, stock FROM produtos WHERE id = ? AND categoria = 'bar'");
         $query_produto->bind_param("i", $produto_id);
         $query_produto->execute();
@@ -31,24 +32,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $total = $produto['preco'] * $quantidade;
 
         if ($aluno['saldo'] >= $total && $produto['stock'] >= $quantidade) {
-            // Atualizar saldo e estoque
+            // Subtrair saldo do aluno
             $novo_saldo = $aluno['saldo'] - $total;
-            $novo_stock = $produto['stock'] - $quantidade;
-
             $update_saldo = $conn->prepare("UPDATE users SET saldo = ? WHERE id = ?");
-            $update_saldo->bind_param("di", $novo_saldo, $aluno['id']);
+            $update_saldo->bind_param("di", $novo_saldo, $aluno_id);
             $update_saldo->execute();
 
-            $update_stock = $conn->prepare("UPDATE produtos SET stock = ? WHERE id = ?");
-            $update_stock->bind_param("ii", $novo_stock, $produto_id);
-            $update_stock->execute();
+            // Atualizar estoque do produto
+            $novo_stock = $produto['stock'] - $quantidade;
+            $update_stock = $conn->prepare("UPDATE produtos SET stock = stock - ? WHERE id = ?");
+            $update_stock->bind_param("ii", $quantidade, $produto_id);
+            if ($update_stock->execute()) {
+                echo "Estoque atualizado com sucesso!<br>";
+            } else {
+                echo "Erro ao atualizar estoque: " . $conn->error . "<br>";
+            }
+            
 
+            // Registrar a compra na tabela transacoes
             $log_transacao = $conn->prepare("INSERT INTO transacoes (user_id, tipo, valor) VALUES (?, 'compra', ?)");
-            $log_transacao->bind_param("id", $aluno['id'], $total);
+            $log_transacao->bind_param("id", $aluno_id, $total);
             $log_transacao->execute();
 
-
-            echo json_encode(["status" => "success", "message" => "Compra realizada com sucesso!"]);
+            echo json_encode(["status" => "success", "message" => "Compra realizada com sucesso!", "novo_saldo" => $novo_saldo]);
         } else {
             echo json_encode(["status" => "error", "message" => "Saldo ou estoque insuficiente!"]);
         }
@@ -58,6 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt">
@@ -93,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             let produto_id = $("#produto").val();
             let quantidade = $("#quantidade").val();
 
-            $.post("comprar_papelaria.php", { rfid: rfid, produto_id: produto_id, quantidade: quantidade }, function (response) {
+            $.post("comprar_bar.php", { rfid: rfid, produto_id: produto_id, quantidade: quantidade }, function (response) {
                 let data = JSON.parse(response);
                 alert(data.message);
             });

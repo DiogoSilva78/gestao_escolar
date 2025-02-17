@@ -17,7 +17,7 @@ $turma_query->execute();
 $turma_result = $turma_query->get_result();
 $turma = $turma_result->fetch_assoc();
 
-// Buscar alunos associados a esta turma
+// Procurar alunos associados a esta turma
 $alunos_query = $conn->prepare("
     SELECT users.id, users.nome, users.email 
     FROM alunos 

@@ -3,7 +3,7 @@ include '../config/db.php';
 $adminOnly = true;
 include '../controllers/auth_check.php';
 
-// Buscar produtos da papelaria
+// Procurar produtos da papelaria
 $query = "SELECT * FROM produtos WHERE categoria = 'papelaria'";
 $result = $conn->query($query);
 ?>
@@ -26,7 +26,7 @@ $result = $conn->query($query);
         <th>ID</th>
         <th>Nome</th>
         <th>Preço (€)</th>
-        <th>Estoque</th>
+        <th>Stock</th>
         <th>Ações</th>
     </tr>
     <?php while ($produto = $result->fetch_assoc()) { ?>
