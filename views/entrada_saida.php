@@ -5,7 +5,7 @@ include '../controllers/auth_check.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $rfid = $_POST['rfid'];
 
-    // Buscar o aluno pelo RFID
+    // Procurar o aluno pelo RFID
     $query = $conn->prepare("SELECT id, nome FROM users WHERE rfid_tag = ? AND tipo = 'aluno'");
     $query->bind_param("s", $rfid);
     $query->execute();
@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Definir se é uma entrada ou saída
         $tipo = ($ultima_movimentacao && $ultima_movimentacao['tipo'] == 'entrada') ? 'saida' : 'entrada';
 
-        // Registrar no banco de dados
+        // Registar na base de dados
         $query_insert = $conn->prepare("INSERT INTO entradas_saidas (user_id, tipo) VALUES (?, ?)");
         $query_insert->bind_param("is", $aluno_id, $tipo);
         $query_insert->execute();
@@ -41,9 +41,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrada/Saída da Escola</title>
+<?php
+    $pageTitle = "Painel do Administrador"; // Define o título da página dinamicamente
+    include '../includes/head.php';
+    ?>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
@@ -69,6 +70,9 @@ document.addEventListener("keydown", function(event) {
     }
 });
 </script>
+
+<?php include '../includes/footer.php'; ?>
+
 
 </body>
 </html>

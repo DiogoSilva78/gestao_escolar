@@ -1,0 +1,102 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+}
+
+footer {
+    width: 100vw; /* Define largura total da tela */
+    background: #212529;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+}
+
+
+
+/* Estilização geral */
+body {
+    background: linear-gradient(to right, #004a99, #002b5e);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Container do login */
+.login-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Cartão do login */
+.login-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+/* Logo */
+.login-logo {
+    width: 120px;
+}
+
+/* Botões */
+.btn-primary {
+    background-color: #004a99;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+.btn-primary:hover {
+    background-color: #003b7a;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+body {
+    background: url('../public/img/background.jpg') no-repeat center center fixed;
+    background-size: cover;
+    backdrop-filter: blur(5px);
+}
+
+.admin-panel {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.admin-card {
+    transition: transform 0.3s ease-in-out;
+}
+
+.admin-card:hover {
+    transform: scale(1.05);
+}
+
+.titulo-sombreado {
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+}

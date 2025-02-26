@@ -11,7 +11,7 @@ if (isset($_GET['id'])) {
         header("Location: ../views/manage_users.php");
         exit();
     } else {
-        echo "Erro ao excluir usuário.";
+        echo "Erro ao excluir utilizador.";
     }
 }
 ?>

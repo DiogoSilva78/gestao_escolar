@@ -3,110 +3,147 @@ include '../config/db.php';
 $adminOnly = true;
 include '../controllers/auth_check.php';
 
-if (!isset($_GET['id'])) {
-    header("Location: manage_users.php");
+// Verifica se um ID foi passado
+if (!isset($_GET['id']) || empty($_GET['id'])) {
+    header("Location: manage_users.php?error=ID do utilizador inválido.");
     exit();
 }
 
-$id = $_GET['id'];
+$user_id = $_GET['id'];
+
+// Buscar dados do utilizador
 $query = $conn->prepare("SELECT * FROM users WHERE id = ?");
-$query->bind_param("i", $id);
+$query->bind_param("i", $user_id);
 $query->execute();
 $result = $query->get_result();
-$user = $result->fetch_assoc();
 
-// Buscar turmas disponíveis
-$turma_query = $conn->query("SELECT * FROM turmas");
-
-// Buscar turma atual do aluno (se for aluno)
-$turma_id = null;
-if ($user['tipo'] === 'aluno') {
-    $turma_query_user = $conn->prepare("SELECT turma_id FROM alunos WHERE user_id = ?");
-    $turma_query_user->bind_param("i", $id);
-    $turma_query_user->execute();
-    $turma_result = $turma_query_user->get_result();
-    $turma = $turma_result->fetch_assoc();
-    $turma_id = $turma ? $turma['turma_id'] : null;
+if ($result->num_rows == 0) {
+    header("Location: manage_users.php?error=Utilizador não encontrado.");
+    exit();
 }
 
-// Processar atualização
+$user = $result->fetch_assoc();
+
+// Buscar turmas disponíveis (caso seja aluno)
+$turma_query = $conn->query("SELECT * FROM turmas");
+
+// Lista de localidades para o `<select>`
+$localidades = [
+    "Amarante", "Baião", "Felgueiras", "Gondomar", "Lousada", "Maia", 
+    "Matosinhos", "Marco de Canaveses", "Paços de Ferreira", "Paredes", 
+    "Penafiel", "Porto", "Póvoa de Varzim", "Santo Tirso", "Trofa", 
+    "Valongo", "Vila do Conde", "Vila Nova de Gaia"
+];
+
+// Processar formulário de edição
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nome = $_POST['nome'];
     $email = $_POST['email'];
+    $password = !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : $user['password'];
     $tipo = $_POST['tipo'];
-    $turma_id = isset($_POST['turma_id']) && $_POST['turma_id'] != '' ? $_POST['turma_id'] : null;
+    $rfid_tag = $_POST['rfid_tag'] ?? null;
+    $turma_id = (!empty($_POST['turma_id'])) ? $_POST['turma_id'] : null;
+    $fotoPath = $user['foto'];
 
-    $query = $conn->prepare("UPDATE users SET nome = ?, email = ?, tipo = ? WHERE id = ?");
-    $query->bind_param("sssi", $nome, $email, $tipo, $id);
+    // Campos adicionais
+    $cartao_cidadao = $_POST['cartao_cidadao'] ?? null;
+    $telefone = $_POST['telefone'] ?? null;
+    $contato_emergencia = $_POST['contato_emergencia'] ?? null;
+    $encarregado_nome = $_POST['encarregado_nome'] ?? null;
+    $encarregado_contato = $_POST['encarregado_contato'] ?? null;
+    $encarregado_email = $_POST['encarregado_email'] ?? null;
+    $morada = $_POST['morada'] ?? null;
+    $localidade = $_POST['localidade'] ?? null;
+
+    // Atualizar foto se um novo arquivo for enviado
+    if (!empty($_FILES["foto"]["name"])) {
+        $uploadDir = "../uploads/fotos/";
+        $fotoName = basename($_FILES["foto"]["name"]);
+        $fotoTmpName = $_FILES["foto"]["tmp_name"];
+        $fotoSize = $_FILES["foto"]["size"];
+        $fotoExt = strtolower(pathinfo($fotoName, PATHINFO_EXTENSION));
+        $fotoNewName = uniqid() . "." . $fotoExt;
+
+        $allowedExts = ["jpg", "jpeg", "png", "gif"];
+        if (in_array($fotoExt, $allowedExts) && $fotoSize < 5000000) { // Limite de 5MB
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            move_uploaded_file($fotoTmpName, $uploadDir . $fotoNewName);
+            $fotoPath = "uploads/fotos/" . $fotoNewName;
+        }
+    }
+
+    // Atualizar utilizador na base de dados
+    $query = $conn->prepare("UPDATE users SET 
+        nome = ?, email = ?, password = ?, tipo = ?, rfid_tag = ?, 
+        cartao_cidadao = ?, telefone = ?, contato_emergencia = ?, 
+        encarregado_nome = ?, encarregado_contato = ?, encarregado_email = ?, 
+        morada = ?, localidade = ?, foto = ? WHERE id = ?");
+
+    $query->bind_param("ssssssssssssssi", 
+        $nome, $email, $password, $tipo, $rfid_tag, 
+        $cartao_cidadao, $telefone, $contato_emergencia, 
+        $encarregado_nome, $encarregado_contato, $encarregado_email, 
+        $morada, $localidade, $fotoPath, $user_id);
 
     if ($query->execute()) {
-        // Se for aluno, atualizar turma
-        if ($tipo === 'aluno') {
-            // Verifica se o aluno já tem uma entrada na tabela alunos
-            $check_aluno = $conn->prepare("SELECT * FROM alunos WHERE user_id = ?");
-            $check_aluno->bind_param("i", $id);
-            $check_aluno->execute();
-            $result_aluno = $check_aluno->get_result();
-
-            if ($result_aluno->num_rows > 0) {
-                // Atualiza a turma do aluno
-                $update_turma = $conn->prepare("UPDATE alunos SET turma_id = ? WHERE user_id = ?");
-                $update_turma->bind_param("ii", $turma_id, $id);
-                $update_turma->execute();
-            } else {
-                // Insere a turma para o aluno se ainda não existir
-                $insert_turma = $conn->prepare("INSERT INTO alunos (user_id, turma_id) VALUES (?, ?)");
-                $insert_turma->bind_param("ii", $id, $turma_id);
-                $insert_turma->execute();
-            }
-        }
-
-        header("Location: manage_users.php");
+        header("Location: manage_users.php?success=Utilizador atualizado com sucesso!");
         exit();
     } else {
-        echo "Erro ao editar usuário.";
+        $error = "Erro ao atualizar utilizador.";
     }
 }
 ?>
 
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Usuário</title>
-</head>
-<body>
+<?php 
+$pageTitle = "Editar Utilizador"; 
+include '../includes/head.php'; 
+?>
 
-<h2>Editar Usuário</h2>
-<a href="manage_users.php">Voltar</a>
+<div class="container mt-5">
+    <h2 class="text-center text-primary">Editar Utilizador</h2>
 
-<?php if (isset($error)) echo "<p style='color:red;'>$error</p>"; ?>
+    <form method="POST" enctype="multipart/form-data" class="card p-4 mx-auto shadow-lg" style="max-width: 600px;">
+        <div class="mb-3">
+            <label class="form-label">Nome</label>
+            <input type="text" name="nome" class="form-control" value="<?= htmlspecialchars($user['nome']); ?>" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($user['email']); ?>" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Senha (deixe em branco para manter a atual)</label>
+            <input type="password" name="password" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Tipo</label>
+            <select name="tipo" class="form-select">
+                <option value="aluno" <?= ($user['tipo'] === 'aluno') ? 'selected' : ''; ?>>Aluno</option>
+                <option value="funcionario" <?= ($user['tipo'] === 'funcionario') ? 'selected' : ''; ?>>Funcionário</option>
+                <option value="admin" <?= ($user['tipo'] === 'admin') ? 'selected' : ''; ?>>Administrador</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Tag RFID</label>
+            <input type="text" name="rfid_tag" class="form-control" value="<?= htmlspecialchars($user['rfid_tag'] ?? ""); ?>">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Localidade</label>
+            <select name="localidade" class="form-select">
+                <?php foreach ($localidades as $loc): ?>
+                    <option value="<?= $loc; ?>" <?= ($user['localidade'] === $loc) ? 'selected' : ''; ?>><?= $loc; ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Foto do Utilizador</label>
+            <input type="file" name="foto" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Salvar Alterações</button>
+    </form>
+</div>
 
-<form method="post">
-    Nome: <input type="text" name="nome" value="<?php echo htmlspecialchars($user['nome']); ?>" required><br>
-    Email: <input type="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required><br>
-    Tipo:
-    <select name="tipo">
-        <option value="admin" <?php echo ($user['tipo'] === 'admin') ? 'selected' : ''; ?>>Administrador</option>
-        <option value="funcionario" <?php echo ($user['tipo'] === 'funcionario') ? 'selected' : ''; ?>>Funcionário</option>
-        <option value="aluno" <?php echo ($user['tipo'] === 'aluno') ? 'selected' : ''; ?>>Aluno</option>
-    </select><br>
 
-    <div id="turmaSection" style="display: <?php echo ($user['tipo'] === 'aluno') ? 'block' : 'none'; ?>;">
-        Turma:
-        <select name="turma_id">
-            <option value="">Sem turma</option>
-            <?php while ($turma = $turma_query->fetch_assoc()) { ?>
-                <option value="<?php echo $turma['id']; ?>" <?php echo ($turma_id == $turma['id']) ? 'selected' : ''; ?>>
-                    <?php echo $turma['nome']; ?>
-                </option>
-            <?php } ?>
-        </select>
-    </div>
-
-    <input type="submit" value="Salvar">
-</form>
-
-</body>
-</html>
+<?php include '../includes/footer.php'; ?>

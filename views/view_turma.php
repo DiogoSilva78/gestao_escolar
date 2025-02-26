@@ -2,6 +2,8 @@
 include '../config/db.php';
 $adminOnly = true;
 include '../controllers/auth_check.php';
+include '../includes/sidebar.php';
+
 
 if (!isset($_GET['id'])) {
     header("Location: manage_turmas.php");
@@ -55,6 +57,11 @@ $alunos_result = $alunos_query->get_result();
         </tr>
     <?php } ?>
 </table>
+
+<button id="toggleSidebar" class="btn btn-outline-secondary">☰</button>
+
+<?php include '../includes/footer.php'; ?>
+
 
 </body>
 </html>

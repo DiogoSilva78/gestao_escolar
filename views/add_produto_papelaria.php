@@ -22,24 +22,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adicionar Produto - Papelaria</title>
+    <?php
+    $pageTitle = "Painel do Administrador"; // Define o título da página dinamicamente
+    include '../includes/head.php';
+    ?>
 </head>
+
 <body>
 
-<h2>Adicionar Produto - Papelaria</h2>
-<a href="manage_papelaria.php">Voltar</a>
+    <h2>Adicionar Produto - Papelaria</h2>
+    <a href="manage_papelaria.php">Voltar</a>
 
-<?php if (isset($error)) echo "<p style='color:red;'>$error</p>"; ?>
+    <?php if (isset($error))
+        echo "<p style='color:red;'>$error</p>"; ?>
 
-<form method="post">
-    Nome: <input type="text" name="nome" required><br>
-    Preço (€): <input type="number" step="0.01" name="preco" required><br>
-    Estoque: <input type="number" name="stock" required><br>
-    <input type="submit" value="Adicionar">
-</form>
+    <form method="post">
+        Nome: <input type="text" name="nome" required><br>
+        Preço (€): <input type="number" step="0.01" name="preco" required><br>
+        Stock: <input type="number" name="stock" required><br>
+        <input type="submit" value="Adicionar">
+    </form>
+
+    <?php include '../includes/footer.php'; ?>
 
 </body>
+
 </html>

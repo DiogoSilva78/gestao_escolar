@@ -1,0 +1,93 @@
+/* Garante que o body ocupa a altura total */
+html, body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: url('../img/hero-bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    backdrop-filter: blur(10px);
+}
+
+/* Faz com que o conteúdo expanda e empurre o footer */
+.container {
+    flex: 1;
+}
+
+.admin-panel, .student-panel {
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-card, .student-card {
+    transition: transform 0.3s ease-in-out;
+}
+
+.admin-card:hover, .student-card:hover {
+    transform: scale(1.05);
+}
+
+.titulo-sombreado {
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+}
+
+.profile-img {
+    width: 90px;
+    border-radius: 50%;
+    border: 4px solid #007bff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Melhorando os botões */
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+}
+
+/* Estilo para as tabelas */
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Estilizar pesquisa */
+#searchTurma {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .d-flex {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form-control {
+        width: 100% !important;
+    }
+}
+
+.card:hover {
+    transform: scale(1.03);
+}
+
+/* Cards do Administrador */
+.card {
+    border-radius: 10px;
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Footer corrigido */
+footer {
+    width: 100%;
+    background: #212529;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    margin-top: auto; /* Empurra o footer para o fim */
+}

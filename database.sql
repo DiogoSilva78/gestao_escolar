@@ -1,7 +1,7 @@
 CREATE DATABASE gestao_escolar;
 USE gestao_escolar;
 
--- Tabela de Usuários (Alunos, Funcionários, Admin)
+-- Tabela de Utilizadores (Alunos, Funcionários, Admin)
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,

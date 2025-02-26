@@ -1,6 +1,6 @@
 <?php
 $host = "localhost"; // Servidor do banco de dados
-$user = "root"; // Usuário do MySQL (padrão no XAMPP)
+$user = "root"; // Utilizador do MySQL (padrão no XAMPP)
 $pass = ""; // Senha do MySQL (deixa vazio se for padrão)
 $dbname = "gestao_escolar"; // Nome atualizado da base de dados
 
